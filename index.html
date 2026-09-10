@@ -5,56 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Analizador Financiero de Acciones con IA</title>
   <style>
-    :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent: #10b981; --accent-hover: #059669; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; }
+    :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent: #10b981; --text-main: #f8fafc; --border: #334155; }
     body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
     .container { max-width: 950px; margin: 0 auto; }
-    .header { text-align: center; padding: 20px 0 30px; border-bottom: 1px solid var(--border); margin-bottom: 25px; }
-    .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-    .card h2 { margin-top: 0; color: var(--accent); }
-    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
+    .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    h1, h2 { color: var(--accent); margin-top: 0; }
     input[type="text"], textarea, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; box-sizing: border-box; margin-bottom: 12px; }
-    .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-    button { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
-    .btn-primary { background-color: var(--accent); color: #000; flex: 1; width: 100%; }
-    .btn-secondary { background-color: #334155; color: #fff; }
-    #output { background: #090d16; border: 1px solid var(--border); padding: 20px; border-radius: 8px; min-height: 120px; white-space: pre-wrap; word-break: break-word; }
-    .loader { display: none; text-align: center; padding: 20px; font-weight: bold; color: var(--accent); }
+    button { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background-color: var(--accent); color: #000; width: 100%; }
+    #output { background: #090d16; border: 1px solid var(--border); padding: 15px; border-radius: 8px; min-height: 100px; white-space: pre-wrap; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>📈 Analizador de Acciones con IA</h1>
-      <p>Ranking de rentabilidad y análisis fundamental a largo plazo</p>
-    </div>
+    <h1>📈 Analizador de Acciones con IA</h1>
+    
     <div class="card">
-      <h2>🔑 1. Configuración de la API (Gratis)</h2>
-      <label for="apiKey">Clave API de Google Gemini:</label>
-      <input type="text" id="apiKey" placeholder="Pega tu API Key de Gemini aquí (AIzaSy...)">
+      <h2>🔑 1. Configuración API</h2>
+      <input type="text" id="apiKey" placeholder="Pega tu API Key aquí">
     </div>
+
     <div class="card">
-      <h2>📊 2. Datos de las Acciones a Analizar</h2>
-      <div class="btn-group" style="margin-bottom: 12px;">
-        <button class="btn-secondary" onclick="cargarEjemplo()">Cargar Acciones de Ejemplo</button>
-      </div>
-      <textarea id="dataInput" rows="8" placeholder="Ingresa datos aquí..."></textarea>
-      <label for="horizon">Horizonte Temporal:</label>
+      <h2>📊 2. Datos de Acciones</h2>
+      <button type="button" style="background:#334155; color:#fff; margin-bottom:10px;" onclick="cargarEjemplo()">Cargar Datos de Ejemplo</button>
+      <textarea id="dataInput" rows="8"></textarea>
       <select id="horizon">
         <option value="5 años">5 Años</option>
         <option value="10 años" selected>10 Años</option>
         <option value="15+ años">15+ Años</option>
       </select>
     </div>
+
     <div class="card">
       <h2>🤖 3. Generar Ranking</h2>
-      <button class="btn-primary" onclick="analizarAcciones()">🚀 Analizar y Crear Ranking</button>
+      <button onclick="analizarAcciones()">🚀 Analizar y Crear Ranking</button>
     </div>
+
     <div class="card">
       <h2>🏆 Resultados</h2>
-      <div id="loader" class="loader">⏳ Analizando datos con la IA...</div>
       <div id="output">Los resultados aparecerán aquí.</div>
     </div>
   </div>
+
   <script>
     function cargarEjemplo() {
       document.getElementById('dataInput').value = `Ticker, Empresa, Sector, Precio($), PER, ROE(%), CrecimientoVentas5A(%), MargenNeto(%), DeudaEbitda, RentabilidadDividendos(%)
@@ -71,17 +62,12 @@ JNJ, Johnson & Johnson, Salud, 160, 18, 22, 5.0, 19, 1.4, 3.2`;
       const datos = document.getElementById('dataInput').value.trim();
       const horizonte = document.getElementById('horizon').value;
       const outputDiv = document.getElementById('output');
-      const loader = document.getElementById('loader');
 
-      if (!apiKey) { alert('Por favor, pega tu API Key en la casilla 1.'); return; }
-      if (!datos) { alert('Por favor, ingresa los datos de las acciones.'); return; }
+      if (!apiKey || !datos) { alert('Rellena la API Key y los datos.'); return; }
 
-      outputDiv.style.display = 'none'; 
-      loader.style.display = 'block';
+      outputDiv.innerText = "⏳ Analizando con la IA...";
 
-      const promptSistema = `Actúa como un analista financiero experto. Analiza estos datos de acciones para una inversión a ${horizonte}. Crea un ranking numerado del #1 al final ordenado por rentabilidad potencial a largo plazo, justifica el top 3 y menciona riesgos.\n\nDatos:\n${datos}`;
-
-      // Usar endpoint genérico v1beta para mayor compatibilidad
+      const promptSistema = `Analiza estos datos financieros para una inversión a ${horizonte}. Crea un ranking numerado del #1 al final ordenado por rentabilidad potencial, justifica el top 3 y menciona riesgos:\n\n${datos}`;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
       try {
@@ -90,25 +76,18 @@ JNJ, Johnson & Johnson, Salud, 160, 18, 22, 5.0, 19, 1.4, 3.2`;
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: promptSistema }] }] })
         });
-
         const json = await response.json();
-        loader.style.display = 'none'; 
-        outputDiv.style.display = 'block';
-
-        if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+        if (json.candidates && json.candidates[0]) {
           outputDiv.innerText = json.candidates[0].content.parts[0].text;
         } else if (json.error) {
-          outputDiv.innerText = "Error de la API: " + json.error.message;
+          outputDiv.innerText = "Error API: " + json.error.message;
         } else {
-          outputDiv.innerText = "Respuesta inesperada: " + JSON.stringify(json);
+          outputDiv.innerText = "Respuesta: " + JSON.stringify(json);
         }
       } catch (e) {
-        loader.style.display = 'none'; 
-        outputDiv.style.display = 'block';
-        outputDiv.innerText = "Error de conexión: " + e.message;
+        outputDiv.innerText = "Error conexión: " + e.message;
       }
     }
   </script>
 </body>
 </html>
-
