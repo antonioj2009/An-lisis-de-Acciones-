@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador Financiero de Acciones con IA</title>
+  <style>
+    :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent: #10b981; --accent-hover: #059669; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+    .container { max-width: 950px; margin: 0 auto; }
+    .header { text-align: center; padding: 20px 0 30px; border-bottom: 1px solid var(--border); margin-bottom: 25px; }
+    .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .card h2 { margin-top: 0; color: var(--accent); }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
+    input[type="text"], textarea, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; box-sizing: border-box; margin-bottom: 12px; }
+    .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    button { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+    .btn-primary { background-color: var(--accent); color: #000; flex: 1; width: 100%; }
+    .btn-secondary { background-color: #334155; color: #fff; }
+    #output { background: #090d16; border: 1px solid var(--border); padding: 20px; border-radius: 8px; min-height: 120px; white-space: pre-wrap; word-break: break-word; }
+    .loader { display: none; text-align: center; padding: 20px; font-weight: bold; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📈 Analizador de Acciones con IA</h1>
+      <p>Ranking de rentabilidad y análisis fundamental a largo plazo</p>
+    </div>
+    <div class="card">
+      <h2>🔑 1. Configuración de la API (Gratis)</h2>
+      <label for="apiKey">Clave API de Google Gemini:</label>
+      <input type="text" id="apiKey" placeholder="Pega tu API Key de Gemini aquí (AIzaSy...)">
+    </div>
+    <div class="card">
+      <h2>📊 2. Datos de las Acciones a Analizar</h2>
+      <div class="btn-group" style="margin-bottom: 12px;">
+        <button class="btn-secondary" onclick="cargarEjemplo()">Cargar Acciones de Ejemplo</button>
+      </div>
+      <textarea id="dataInput" rows="8" placeholder="Ingresa datos aquí..."></textarea>
+      <label for="horizon">Horizonte Temporal:</label>
+      <select id="horizon">
+        <option value="5 años">5 Años</option>
+        <option value="10 años" selected>10 Años</option>
+        <option value="15+ años">15+ Años</option>
+      </select>
+    </div>
+    <div class="card">
+      <h2>🤖 3. Generar Ranking</h2>
+      <button class="btn-primary" onclick="analizarAcciones()">🚀 Analizar y Crear Ranking</button>
+    </div>
+    <div class="card">
+      <h2>🏆 Resultados</h2>
+      <div id="loader" class="loader">⏳ Analizando datos con la IA...</div>
+      <div id="output">Los resultados aparecerán aquí.</div>
+    </div>
+  </div>
+  <script>
+    function cargarEjemplo() {
+      document.getElementById('dataInput').value = `Ticker, Empresa, Sector, Precio($), PER, ROE(%), CrecimientoVentas5A(%), MargenNeto(%), DeudaEbitda, RentabilidadDividendos(%)
+NVDA, Nvidia Corp, Tecnología, 120, 45, 115, 48.0, 55, 0.2, 0.1
+MSFT, Microsoft Corp, Tecnología, 440, 35, 38, 14.2, 36, 0.8, 0.7
+AAPL, Apple Inc, Tecnología, 225, 33, 145, 8.5, 24, 0.9, 0.5
+GOOGL, Alphabet Inc, Tecnología, 175, 24, 30, 15.5, 25, 0.1, 0.5
+KO, Coca-Cola Co, Consumo, 68, 24, 40, 4.1, 23, 2.1, 3.1
+JNJ, Johnson & Johnson, Salud, 160, 18, 22, 5.0, 19, 1.4, 3.2`;
+    }
+
+    async function analizarAcciones() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const datos = document.getElementById('dataInput').value.trim();
+      const horizonte = document.getElementById('horizon').value;
+      const outputDiv = document.getElementById('output');
+      const loader = document.getElementById('loader');
+
+      if (!apiKey) { alert('Por favor, pega tu API Key en la casilla 1.'); return; }
+      if (!datos) { alert('Por favor, ingresa los datos de las acciones.'); return; }
+
+      outputDiv.style.display = 'none'; 
+      loader.style.display = 'block';
+
+      const promptSistema = `Actúa como un analista financiero experto. Analiza estos datos de acciones para una inversión a ${horizonte}. Crea un ranking numerado del #1 al final ordenado por rentabilidad potencial a largo plazo, justifica el top 3 y menciona riesgos.\n\nDatos:\n${datos}`;
+
+      // Usar endpoint genérico v1beta para mayor compatibilidad
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: promptSistema }] }] })
+        });
+
+        const json = await response.json();
+        loader.style.display = 'none'; 
+        outputDiv.style.display = 'block';
+
+        if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+          outputDiv.innerText = json.candidates[0].content.parts[0].text;
+        } else if (json.error) {
+          outputDiv.innerText = "Error de la API: " + json.error.message;
+        } else {
+          outputDiv.innerText = "Respuesta inesperada: " + JSON.stringify(json);
+        }
+      } catch (e) {
+        loader.style.display = 'none'; 
+        outputDiv.style.display = 'block';
+        outputDiv.innerText = "Error de conexión: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
 
